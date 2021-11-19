@@ -21,23 +21,12 @@ class Evaluator:
             '<=>': lambda a, b: a == b,
         }
 
+
     @staticmethod
     def process_string(string_form):
-        processed_string = []
-        split_string = [element for element in string_form if element != ' ']
-        merged_string = ""
-        for i, element in enumerate(split_string):
-            if element.isnumeric():
-                if merged_string.isnumeric():
-                    merged_string += element
-                    processed_string.pop()
-                else:
-                    merged_string = element
-            else:
-                merged_string = element
-            processed_string.append(merged_string)
 
-        return processed_string
+        split_string = string_form.split(' ')
+        return split_string
 
     def convert_to_rpn(self, string):
         queue = []
@@ -96,6 +85,9 @@ class Evaluator:
         for element in rpn_string:
             if type(element) == bool:
                 stack.append(element)
+            elif element == '~':
+                a = stack.pop()
+                stack.append(self.operations[element](a))
             else:
                 a = stack.pop()
                 b = stack.pop()
@@ -129,7 +121,7 @@ class Evaluator:
 def main():
 
     variable_names = ['p', 'q']
-    string_form = "~p ^ q"
+    string_form = "p => q <=> ~ p v q "
 
     evaluator = Evaluator()
     combination_set = evaluator.generate_combination_set(variable_names)
