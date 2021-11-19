@@ -5,11 +5,11 @@ class Evaluator:
 
     def __init__(self):
         self.operators = {
-            '~': [1, True],
-            '^': [2, True],
+            '~': [5, True],
+            '^': [4, True],
             'v': [3, True],
-            '=>': [4, True],
-            '<=>': [5, True],
+            '=>': [2, True],
+            '<=>': [1, True],
             '(': [0, True]
         }
 
@@ -44,7 +44,7 @@ class Evaluator:
         stack = []
 
         for element in string:
-            if element.isnumeric():
+            if type(element) == bool:
                 queue.append(element)
             elif element == '(':
                 stack.append(element)
@@ -69,16 +69,20 @@ class Evaluator:
                             if value <= self.operators[top_el][0]:
                                 queue.append(top_el)
                                 stack.pop()
+                                if len(stack) == 0:
+                                    stack.append(element)
+                                    break
                             else:
                                 stack.append(element)
                                 break
                         elif value < self.operators[top_el][0]:
                             queue.append(top_el)
                             stack.pop()
+                            if len(stack) == 0:
+                                stack.append(element)
+                                break
                         else:
                             stack.append(element)
-                            break
-                        if len(stack) == 0:
                             break
                 else:
                     stack.append(element)
@@ -89,13 +93,8 @@ class Evaluator:
     def evaluate_value(self, rpn_string):
         stack = []
 
-        # Converting numeric elements to integers
-        for i in range(len(rpn_string)):
-            if rpn_string[i].isnumeric():
-                rpn_string[i] = int(rpn_string[i])
-
         for element in rpn_string:
-            if type(element) == int:
+            if type(element) == bool:
                 stack.append(element)
             else:
                 a = stack.pop()
@@ -130,7 +129,7 @@ class Evaluator:
 def main():
 
     variable_names = ['p', 'q']
-    string_form = "p ^ q"
+    string_form = "~p ^ q"
 
     evaluator = Evaluator()
     combination_set = evaluator.generate_combination_set(variable_names)
@@ -142,6 +141,7 @@ def main():
         rpn = evaluator.convert_to_rpn(bool_form)
         print(rpn)
         value = evaluator.evaluate_value(rpn)
+        print(value)
 
 
 main()
