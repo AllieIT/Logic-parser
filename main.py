@@ -69,16 +69,20 @@ class Evaluator:
                             if value <= self.operators[top_el][0]:
                                 queue.append(top_el)
                                 stack.pop()
+                                if len(stack) == 0:
+                                    stack.append(element)
+                                    break
                             else:
                                 stack.append(element)
                                 break
                         elif value < self.operators[top_el][0]:
                             queue.append(top_el)
                             stack.pop()
+                            if len(stack) == 0:
+                                stack.append(element)
+                                break
                         else:
                             stack.append(element)
-                            break
-                        if len(stack) == 0:
                             break
                 else:
                     stack.append(element)
