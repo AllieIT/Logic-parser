@@ -13,6 +13,14 @@ class Evaluator:
             '(': [0, True]
         }
 
+        self.operations = {
+            '+': lambda a, b: a + b,
+            '-': lambda a, b: a - b,
+            '/': lambda a, b: a / b,
+            'x': lambda a, b: a * b,
+            '^': lambda a, b: a ** b,
+        }
+
     @staticmethod
     def process_string(string_form):
         processed_string = []
@@ -75,8 +83,28 @@ class Evaluator:
                 else:
                     stack.append(element)
 
-        queue.extend(stack)
+        queue.extend(stack.__reversed__())
         return queue
+
+    def evaluate_value(self, rpn_string):
+        stack = []
+
+        # Converting numeric elements to integers
+        for i in range(len(rpn_string)):
+            if rpn_string[i].isnumeric():
+                rpn_string[i] = int(rpn_string[i])
+
+        for element in rpn_string:
+            print(stack)
+            if type(element) == int:
+                stack.append(element)
+            else:
+                a = stack.pop()
+                b = stack.pop()
+                print(str(a) + ' ' + element + ' ' + str(b))
+                stack.append(self.operations[element](b, a))
+
+        print(stack)
 
 
 def main():
@@ -86,6 +114,7 @@ def main():
     processed_form = evaluator.process_string(string_form)
     rpn = evaluator.convert_to_rpn(processed_form)
     print(rpn)
+    evaluator.evaluate_value(rpn)
 
 
 main()
