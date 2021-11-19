@@ -9,7 +9,7 @@ class Evaluator:
             '^': [2, True],
             'v': [3, True],
             '=>': [4, True],
-            '<=>': [5, False],
+            '<=>': [5, True],
             '(': [0, True]
         }
 
@@ -113,6 +113,19 @@ class Evaluator:
                 result_form[i] = combination[element]
         return result_form
 
+    @staticmethod
+    def generate_combination_set(variable_names):
+        combinations = it.product(*[[True, False] for _ in range(len(variable_names))])
+        combination_set = []
+
+        for combination in combinations:
+            comb_dict = {}
+            for i, name in enumerate(variable_names):
+                comb_dict[name] = combination[i]
+            combination_set.append(comb_dict)
+
+        return combination_set
+
 
 def main():
 
@@ -120,12 +133,15 @@ def main():
     string_form = "p ^ q"
 
     evaluator = Evaluator()
+    combination_set = evaluator.generate_combination_set(variable_names)
     processed_form = evaluator.process_string(string_form)
-    bool_form = evaluator.set_bool_values(processed_form, {'p': True, 'q': True})
-    print(bool_form)
-    rpn = evaluator.convert_to_rpn(bool_form)
-    print(rpn)
-    value = evaluator.evaluate_value(rpn)
+
+    for combination in combination_set:
+        bool_form = evaluator.set_bool_values(processed_form, combination)
+        print(bool_form)
+        rpn = evaluator.convert_to_rpn(bool_form)
+        print(rpn)
+        value = evaluator.evaluate_value(rpn)
 
 
 main()
