@@ -5,20 +5,20 @@ class Evaluator:
 
     def __init__(self):
         self.operators = {
-            '+': [1, True],
-            '-': [1, True],
-            '/': [2, True],
-            'x': [2, True],
-            '^': [3, False],
+            '~': [1, True],
+            '^': [2, True],
+            'v': [3, True],
+            '=>': [4, True],
+            '<=>': [5, False],
             '(': [0, True]
         }
 
         self.operations = {
-            '+': lambda a, b: a + b,
-            '-': lambda a, b: a - b,
-            '/': lambda a, b: a / b,
-            'x': lambda a, b: a * b,
-            '^': lambda a, b: a ** b,
+            '~': lambda a: not a,
+            '^': lambda a, b: a and b,
+            'v': lambda a, b: a or b,
+            '=>': lambda a, b: (not a) or b,
+            '<=>': lambda a, b: a == b,
         }
 
     @staticmethod
@@ -95,26 +95,37 @@ class Evaluator:
                 rpn_string[i] = int(rpn_string[i])
 
         for element in rpn_string:
-            print(stack)
             if type(element) == int:
                 stack.append(element)
             else:
                 a = stack.pop()
                 b = stack.pop()
-                print(str(a) + ' ' + element + ' ' + str(b))
                 stack.append(self.operations[element](b, a))
 
-        print(stack)
+        return stack[0]
+
+    @staticmethod
+    def set_bool_values(form, combination):
+        result_form = []
+        for i, element in enumerate(form):
+            result_form.append(element)
+            if element in combination.keys():
+                result_form[i] = combination[element]
+        return result_form
 
 
 def main():
-    string_form = "3 + 4 x 2 / (1 - 5) ^ 2"
+
+    variable_names = ['p', 'q']
+    string_form = "p ^ q"
 
     evaluator = Evaluator()
     processed_form = evaluator.process_string(string_form)
-    rpn = evaluator.convert_to_rpn(processed_form)
+    bool_form = evaluator.set_bool_values(processed_form, {'p': True, 'q': True})
+    print(bool_form)
+    rpn = evaluator.convert_to_rpn(bool_form)
     print(rpn)
-    evaluator.evaluate_value(rpn)
+    value = evaluator.evaluate_value(rpn)
 
 
 main()
