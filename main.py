@@ -8,7 +8,7 @@ class Evaluator:
             '~': [5, True],
             '^': [4, True],
             'v': [3, True],
-            '=>': [2, True],
+            '=>': [2, False],
             '<=>': [1, True],
             '(': [0, True]
         }
@@ -117,23 +117,65 @@ class Evaluator:
 
         return combination_set
 
+    def get_variable_names(self, processed_form):
+        variable_names = set()
+        for element in processed_form:
+            if element not in self.operators.keys() and element != ')':
+                variable_names.add(element)
+        return variable_names
+
+    def are_equal(self, form_1, form_2):
+        # TODO: Extend this to many forms??
+
+        new_form = '( ' + form_1 + ' ) ' + '<=>' + ' ( ' + form_2 + ' )'
+        return self.is_tautology(new_form)
+
+    def is_satisfiable(self, form):
+        form = self.process_string(form)
+        variable_names = self.get_variable_names(form)
+
+        combination_set = self.generate_combination_set(variable_names)
+        satisfiable = False
+
+        for combination in combination_set:
+            bool_form = self.set_bool_values(form, combination)
+            rpn = self.convert_to_rpn(bool_form)
+            if self.evaluate_value(rpn):
+                satisfiable = True
+
+        return satisfiable
+
+    def is_tautology(self, form):
+        form = self.process_string(form)
+        variable_names = self.get_variable_names(form)
+
+        combination_set = self.generate_combination_set(variable_names)
+        tautology = True
+
+        for combination in combination_set:
+            bool_form = self.set_bool_values(form, combination)
+            rpn = self.convert_to_rpn(bool_form)
+            if not self.evaluate_value(rpn):
+                tautology = False
+
+        return tautology
+
 
 def main():
 
-    variable_names = ['p', 'q']
+    variable_names = ['p', 'q', 'r']
     string_form = "p => q <=> ~ p v q "
 
     evaluator = Evaluator()
     combination_set = evaluator.generate_combination_set(variable_names)
     processed_form = evaluator.process_string(string_form)
 
-    for combination in combination_set:
-        bool_form = evaluator.set_bool_values(processed_form, combination)
-        print(bool_form)
-        rpn = evaluator.convert_to_rpn(bool_form)
-        print(rpn)
-        value = evaluator.evaluate_value(rpn)
-        print(value)
+    # for combination in combination_set:
+    #     bool_form = evaluator.set_bool_values(processed_form, combination)
+    #     rpn = evaluator.convert_to_rpn(bool_form)
+    #     value = evaluator.evaluate_value(rpn)
+
+    print(evaluator.are_equal("( p => q ) => r", "( p v r ) ^ ( ~ q v r )"))
 
 
 main()
