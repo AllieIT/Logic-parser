@@ -21,7 +21,6 @@ class Evaluator:
             '<=>': lambda a, b: a == b,
         }
 
-
     @staticmethod
     def process_string(string_form):
 
@@ -124,11 +123,23 @@ class Evaluator:
                 variable_names.add(element)
         return variable_names
 
-    def are_equal(self, form_1, form_2):
-        # TODO: Extend this to many forms??
+    def are_equal(self, *args):
+        new_form = ''
 
-        new_form = '( ' + form_1 + ' ) ' + '<=>' + ' ( ' + form_2 + ' )'
-        return self.is_tautology(new_form)
+        if len(args) == 1:
+            new_form = args[0]
+            return self.is_tautology(new_form)
+
+        if len(args) > 1:
+            equal = True
+
+            for arg in args[1:]:
+                new_form = '( ' + args[0] + ' ) <=> ( ' + arg + ' )'
+                value = self.is_tautology(new_form)
+                if not value:
+                    equal = False
+
+            return equal
 
     def is_satisfiable(self, form):
         form = self.process_string(form)
@@ -175,7 +186,9 @@ def main():
     #     rpn = evaluator.convert_to_rpn(bool_form)
     #     value = evaluator.evaluate_value(rpn)
 
-    print(evaluator.are_equal("( p => q ) => r", "( p v r ) ^ ( ~ q v r )"))
+    print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
+    print("Form " + string_form + " is a tautology: " + str(evaluator.is_tautology(string_form)))
+    print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
 
 
 main()
