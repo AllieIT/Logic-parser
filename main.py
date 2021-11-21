@@ -1,50 +1,68 @@
 import itertools as it
 
 
-class Evaluator:
+class LogicEvaluator:
 
     def __init__(self):
         self.operators = {
-            '+': [1, True],
-            '-': [1, True],
-            '/': [2, True],
-            'x': [2, True],
-            '^': [3, False],
+            '~': [5, True],
+            '^': [4, True],
+            'v': [3, True],
+            '=>': [2, False],
+            '<=>': [1, True],
             '(': [0, True]
         }
 
         self.operations = {
-            '+': lambda a, b: a + b,
-            '-': lambda a, b: a - b,
-            '/': lambda a, b: a / b,
-            'x': lambda a, b: a * b,
-            '^': lambda a, b: a ** b,
+            '~': lambda a: not a,
+            '^': lambda a, b: a and b,
+            'v': lambda a, b: a or b,
+            '=>': lambda a, b: (not a) or b,
+            '<=>': lambda a, b: a == b,
         }
 
-    @staticmethod
-    def process_string(string_form):
-        processed_string = []
-        split_string = [element for element in string_form if element != ' ']
-        merged_string = ""
-        for i, element in enumerate(split_string):
-            if element.isnumeric():
-                if merged_string.isnumeric():
-                    merged_string += element
-                    processed_string.pop()
-                else:
-                    merged_string = element
-            else:
-                merged_string = element
-            processed_string.append(merged_string)
+    def process_helper(self, string_form):
+        all_operators = list(self.operators.keys())
+        all_operators.append(')')
 
-        return processed_string
+        if len(string_form) == 1 or string_form in all_operators:
+            return [string_form]
+        if len(string_form) > 3:
+            if string_form[:3] in all_operators:
+                r = [string_form[:3]]
+                r.extend(self.process_helper(string_form[3:]))
+                return r
+            if string_form[:2] in all_operators:
+                r = [string_form[:2]]
+                r.extend(self.process_helper(string_form[2:]))
+                return r
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+        if len(string_form) > 2:
+            if string_form[:2] in all_operators:
+                r = [string_form[:2]]
+                r.extend(self.process_helper(string_form[2:]))
+                return r
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+        if len(string_form) > 1:
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+
+    def process_string(self, string_form):
+        stripped_list = [element for element in string_form if element != ' ']
+        stripped_string = "".join(stripped_list)
+        return self.process_helper(stripped_string)
 
     def convert_to_rpn(self, string):
         queue = []
         stack = []
 
         for element in string:
-            if element.isnumeric():
+            if type(element) == bool:
                 queue.append(element)
             elif element == '(':
                 stack.append(element)
@@ -93,32 +111,115 @@ class Evaluator:
     def evaluate_value(self, rpn_string):
         stack = []
 
-        # Converting numeric elements to integers
-        for i in range(len(rpn_string)):
-            if rpn_string[i].isnumeric():
-                rpn_string[i] = int(rpn_string[i])
-
         for element in rpn_string:
-            print(stack)
-            if type(element) == int:
+            if type(element) == bool:
                 stack.append(element)
+            elif element == '~':
+                a = stack.pop()
+                stack.append(self.operations[element](a))
             else:
                 a = stack.pop()
                 b = stack.pop()
-                print(str(a) + ' ' + element + ' ' + str(b))
                 stack.append(self.operations[element](b, a))
 
-        print(stack)
+        return stack[0]
+
+    @staticmethod
+    def set_bool_values(form, combination):
+        result_form = []
+        for i, element in enumerate(form):
+            result_form.append(element)
+            if element in combination.keys():
+                result_form[i] = combination[element]
+        return result_form
+
+    @staticmethod
+    def generate_combination_set(variable_names):
+        combinations = it.product(*[[True, False] for _ in range(len(variable_names))])
+        combination_set = []
+
+        for combination in combinations:
+            comb_dict = {}
+            for i, name in enumerate(variable_names):
+                comb_dict[name] = combination[i]
+            combination_set.append(comb_dict)
+
+        return combination_set
+
+    def get_variable_names(self, processed_form):
+        variable_names = set()
+        for element in processed_form:
+            if element not in self.operators.keys() and element != ')':
+                variable_names.add(element)
+        return variable_names
+
+    def are_equal(self, *args):
+        new_form = ''
+
+        if len(args) == 1:
+            new_form = args[0]
+            return self.is_tautology(new_form)
+
+        if len(args) > 1:
+            equal = True
+
+            for arg in args[1:]:
+                new_form = '( ' + args[0] + ' ) <=> ( ' + arg + ' )'
+                value = self.is_tautology(new_form)
+                if not value:
+                    equal = False
+
+            return equal
+
+    def is_satisfiable(self, form):
+        form = self.process_string(form)
+        variable_names = self.get_variable_names(form)
+
+        combination_set = self.generate_combination_set(variable_names)
+        satisfiable = False
+
+        for combination in combination_set:
+            bool_form = self.set_bool_values(form, combination)
+            rpn = self.convert_to_rpn(bool_form)
+            if self.evaluate_value(rpn):
+                satisfiable = True
+
+        return satisfiable
+
+    def is_tautology(self, form):
+        form = self.process_string(form)
+        print(form)
+        variable_names = self.get_variable_names(form)
+
+        combination_set = self.generate_combination_set(variable_names)
+        tautology = True
+
+        for combination in combination_set:
+            bool_form = self.set_bool_values(form, combination)
+            rpn = self.convert_to_rpn(bool_form)
+            if not self.evaluate_value(rpn):
+                tautology = False
+
+        return tautology
 
 
 def main():
-    string_form = "3 + 4 x 2 / (1 - 5) ^ 2"
 
-    evaluator = Evaluator()
+    variable_names = ['p', 'q', 'r']
+    string_form = "p=>q<=> ~p v q"
+
+    evaluator = LogicEvaluator()
+    combination_set = evaluator.generate_combination_set(variable_names)
     processed_form = evaluator.process_string(string_form)
-    rpn = evaluator.convert_to_rpn(processed_form)
-    print(rpn)
-    evaluator.evaluate_value(rpn)
+
+    # for combination in combination_set:
+    #     bool_form = evaluator.set_bool_values(processed_form, combination)
+    #     rpn = evaluator.convert_to_rpn(bool_form)
+    #     value = evaluator.evaluate_value(rpn)
+
+    # print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
+    print("Form " + string_form + " is a tautology: " + str(evaluator.is_tautology(string_form)))
+    # print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
 
 
 main()
