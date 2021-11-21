@@ -1,7 +1,7 @@
 import itertools as it
 
 
-class Evaluator:
+class LogicEvaluator:
 
     def __init__(self):
         self.operators = {
@@ -208,7 +208,7 @@ def main():
     variable_names = ['p', 'q', 'r']
     string_form = "p=>q<=> ~p v q"
 
-    evaluator = Evaluator()
+    evaluator = LogicEvaluator()
     combination_set = evaluator.generate_combination_set(variable_names)
     processed_form = evaluator.process_string(string_form)
 
