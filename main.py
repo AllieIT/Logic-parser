@@ -21,11 +21,41 @@ class Evaluator:
             '<=>': lambda a, b: a == b,
         }
 
-    @staticmethod
-    def process_string(string_form):
+    def process_helper(self, string_form):
+        all_operators = list(self.operators.keys())
+        all_operators.append(')')
 
-        split_string = string_form.split(' ')
-        return split_string
+        if len(string_form) == 1 or string_form in all_operators:
+            return [string_form]
+        if len(string_form) > 3:
+            if string_form[:3] in all_operators:
+                r = [string_form[:3]]
+                r.extend(self.process_helper(string_form[3:]))
+                return r
+            if string_form[:2] in all_operators:
+                r = [string_form[:2]]
+                r.extend(self.process_helper(string_form[2:]))
+                return r
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+        if len(string_form) > 2:
+            if string_form[:2] in all_operators:
+                r = [string_form[:2]]
+                r.extend(self.process_helper(string_form[2:]))
+                return r
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+        if len(string_form) > 1:
+            r = [string_form[0]]
+            r.extend(self.process_helper(string_form[1:]))
+            return r
+
+    def process_string(self, string_form):
+        stripped_list = [element for element in string_form if element != ' ']
+        stripped_string = "".join(stripped_list)
+        return self.process_helper(stripped_string)
 
     def convert_to_rpn(self, string):
         queue = []
@@ -158,6 +188,7 @@ class Evaluator:
 
     def is_tautology(self, form):
         form = self.process_string(form)
+        print(form)
         variable_names = self.get_variable_names(form)
 
         combination_set = self.generate_combination_set(variable_names)
@@ -175,7 +206,7 @@ class Evaluator:
 def main():
 
     variable_names = ['p', 'q', 'r']
-    string_form = "p => q <=> ~ p v q "
+    string_form = "p=>q<=> ~p v q"
 
     evaluator = Evaluator()
     combination_set = evaluator.generate_combination_set(variable_names)
@@ -186,9 +217,9 @@ def main():
     #     rpn = evaluator.convert_to_rpn(bool_form)
     #     value = evaluator.evaluate_value(rpn)
 
-    print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
+    # print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
     print("Form " + string_form + " is a tautology: " + str(evaluator.is_tautology(string_form)))
-    print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
+    # print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
 
 
 main()
