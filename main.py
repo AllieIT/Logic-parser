@@ -1,110 +1,6 @@
 import itertools as it
 
 
-class NumericalEvaluator:
-
-    def __init__(self):
-        self.operators = {
-            '+': [1, True],
-            '-': [1, True],
-            '/': [2, True],
-            'x': [2, True],
-            '^': [3, False],
-            '(': [0, True]
-        }
-
-        self.operations = {
-            '+': lambda a, b: a + b,
-            '-': lambda a, b: a - b,
-            '/': lambda a, b: a / b,
-            'x': lambda a, b: a * b,
-            '^': lambda a, b: a ** b,
-        }
-
-    @staticmethod
-    def process_string(string_form):
-        processed_string = []
-        split_string = [element for element in string_form if element != ' ']
-        merged_string = ""
-        for i, element in enumerate(split_string):
-            if element.isnumeric():
-                if merged_string.isnumeric():
-                    merged_string += element
-                    processed_string.pop()
-                else:
-                    merged_string = element
-            else:
-                merged_string = element
-            processed_string.append(merged_string)
-
-        return processed_string
-
-    def convert_to_rpn(self, string):
-        queue = []
-        stack = []
-
-        for element in string:
-            if element.isnumeric():
-                queue.append(element)
-            elif element == '(':
-                stack.append(element)
-            elif element == ')':
-                while True:
-                    if len(stack) == 0:
-                        print("Bad parentheses")
-                        break
-                    top_el = stack[-1]
-                    if top_el != '(':
-                        queue.append(top_el)
-                        stack.pop()
-                    else:
-                        stack.pop()
-                        break
-            elif element in self.operators.keys():
-                value = self.operators[element][0]
-                if len(stack) > 0:
-                    while True:
-                        top_el = stack[-1]
-                        if self.operators[element][1]:
-                            if value <= self.operators[top_el][0]:
-                                queue.append(top_el)
-                                stack.pop()
-                            else:
-                                stack.append(element)
-                                break
-                        elif value < self.operators[top_el][0]:
-                            queue.append(top_el)
-                            stack.pop()
-                        else:
-                            stack.append(element)
-                            break
-                        if len(stack) == 0:
-                            break
-                else:
-                    stack.append(element)
-
-        queue.extend(stack.__reversed__())
-        return queue
-
-    def evaluate_value(self, rpn_string):
-        stack = []
-
-        # Converting numeric elements to integers
-        for i in range(len(rpn_string)):
-            if rpn_string[i].isnumeric():
-                rpn_string[i] = int(rpn_string[i])
-
-        for element in rpn_string:
-            if type(element) == int:
-                stack.append(element)
-            else:
-                a = stack.pop()
-                b = stack.pop()
-                stack.append(self.operations[element](b, a))
-
-        return stack[0]
-
-
 class LogicEvaluator:
 
     def __init__(self):
@@ -308,31 +204,13 @@ class LogicEvaluator:
 
 def main():
 
-    variable_names = ['p', 'q', 'r']
     string_form = "p=>q<=> ~p v q"
 
     evaluator = LogicEvaluator()
-    combination_set = evaluator.generate_combination_set(variable_names)
-    processed_form = evaluator.process_string(string_form)
 
-    # for combination in combination_set:
-    #     bool_form = evaluator.set_bool_values(processed_form, combination)
-    #     rpn = evaluator.convert_to_rpn(bool_form)
-    #     value = evaluator.evaluate_value(rpn)
-
-    # print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
+    print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
     print("Form \"" + string_form + "\" is a tautology: " + str(evaluator.is_tautology(string_form)))
-    # print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
-    numerical_example()
-
-
-def numerical_example():
-    string_form = "3 + 4 x 2 / (1 - 5) ^ 2"
-
-    evaluator = NumericalEvaluator()
-    processed_form = evaluator.process_string(string_form)
-    rpn = evaluator.convert_to_rpn(processed_form)
-    print(string_form + " = " + str(evaluator.evaluate_value(rpn)))
+    print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
 
 
 main()
