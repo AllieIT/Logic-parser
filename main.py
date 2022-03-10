@@ -201,6 +201,10 @@ class LogicEvaluator:
 
         return tautology
 
+    def is_logical_consequence(self, form1, form2):
+        new_form = f"({form1}) => ({form2})"
+        return self.is_tautology(new_form)
+
 
 def main():
 
@@ -211,6 +215,6 @@ def main():
     print("Forms p => q and ~ p v q and ~ p v q are equal: " + str(evaluator.are_equal("p => q", "~ p v q", "~ ( p ^ ~ q )")))
     print("Form \"" + string_form + "\" is a tautology: " + str(evaluator.is_tautology(string_form)))
     print("Form " + string_form + " is a satisfiable: " + str(evaluator.is_satisfiable(string_form)))
-
+    print("Forms ~p v q is logical consequence of p => q: " + str(evaluator.is_logical_consequence("p => q", "~p v q")))
 
 main()
